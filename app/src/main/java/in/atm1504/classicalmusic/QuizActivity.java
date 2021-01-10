@@ -10,19 +10,25 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -30,10 +36,11 @@ import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
 
-public class QuizActivity extends AppCompatActivity implements View.OnClickListener {
+public class QuizActivity extends AppCompatActivity implements View.OnClickListener, ExoPlayer.EventListener {
 
     private static final int CORRECT_ANSWER_DELAY_MILLIS = 1000;
     private static final String REMAINING_SONGS_KEY = "remaining_songs";
+    private static final String TAG = "ANAM";
     private int[] mButtonIDs = {R.id.buttonA, R.id.buttonB, R.id.buttonC, R.id.buttonD};
     private ArrayList<Integer> mRemainingSampleIDs;
     private ArrayList<Integer> mQuestionSampleIDs;
@@ -49,13 +56,11 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz);
 
-//        ImageView composerView = (ImageView) findViewById(R.id.composerView);
         mPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
-
+        mExoPlayer.addListener(this);
 
         boolean isNewGame = !getIntent().hasExtra(REMAINING_SONGS_KEY);
 
-        // If it's a new game, set the current score to 0 and load all samples.
         if (isNewGame) {
             QuizUtils.setCurrentScore(this, 0);
             mRemainingSampleIDs = Sample.getAllSampleIDs(this);
@@ -107,14 +112,6 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
-    /**
-     * Initializes the button to the correct views, and sets the text to the composers names,
-     * and set's the OnClick listener to the buttons.
-     *
-     * @param answerSampleIDs The IDs of the possible answers to the question.
-     * @return The Array of initialized buttons.
-     */
     private Button[] initializeButtons(ArrayList<Integer> answerSampleIDs) {
         Button[] buttons = new Button[mButtonIDs.length];
         for (int i = 0; i < answerSampleIDs.size(); i++) {
@@ -208,5 +205,39 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         mExoPlayer.stop();
         mExoPlayer.release();
         mExoPlayer = null;
+    }
+
+    @Override
+    public void onTimelineChanged(Timeline timeline, Object manifest) {
+
+    }
+
+    @Override
+    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+    }
+
+    @Override
+    public void onLoadingChanged(boolean isLoading) {
+
+    }
+
+    @Override
+    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        if ((playbackState == ExoPlayer.STATE_READY) && playWhenReady) {
+            Log.d(TAG, "onPlayerStateChanged: PLAYING");
+        } else if ((playbackState == ExoPlayer.STATE_READY)) {
+            Log.d(TAG, "onPlayerStateChanged: PAUSED");
+        }
+    }
+
+    @Override
+    public void onPlayerError(ExoPlaybackException error) {
+
+    }
+
+    @Override
+    public void onPositionDiscontinuity() {
+
     }
 }
